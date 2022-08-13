@@ -113,14 +113,14 @@ function load (val) {
   const files = fs.readdirSync(val)
   for (let i = 0; i < files.length; i++) {
     const item = files[i]
-    const stat = fs.lstatSync(val + '\\' + item)
+    const stat = fs.lstatSync(val + '/' + item)
     if (stat.isDirectory() === true) {
-      arrFiles = arrFiles.concat(load(val + '\\' + item))
+      arrFiles = arrFiles.concat(load(val + '/' + item))
     } else {
       var reg = /^.*\.mp3$/
       var reg1 = /^.*\.flac$/
       if (reg.test(item) || reg1.test(item)) { /* 获取的是所有的mp3和flac文件 */
-        arrFiles.push(val + '\\' + item)
+        arrFiles.push(val + '/' + item)
       }
     }
   }
@@ -130,7 +130,6 @@ app.get('/api/private/v1/songs', (req, res) => {
   var fileList = load('./assets/song')
   var nameList = []
   for (let i = 0;  i < fileList.length; i++) {
-    fileList[i] = fileList[i].replaceAll('\\', '/')
     var split = fileList[i].split('/')
     fileList[i] = 'http://localhost:8888/' + fileList[i].replace('./assets/', '')
     nameList.push(split[split.length - 1].replace('.flac', '').replace('.mp3', ''))
