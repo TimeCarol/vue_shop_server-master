@@ -7,6 +7,7 @@ var mount = require('mount-routes')
 
 var app = express()
 
+app.use(express.static('./assets'))
 
 /**
  *
@@ -107,7 +108,43 @@ app.use('/' + upload_config.get('upload_ueditor'), express.static(upload_config.
 
 const logistics = require('./modules/Logistics.js')
 app.get('/api/private/v1/kuaidi/:orderno', logistics.getLogisticsInfo)
-
+function load (val) {
+  let arrFiles = []
+  const files = fs.readdirSync(val)
+  for (let i = 0; i < files.length; i++) {
+    const item = files[i]
+    const stat = fs.lstatSync(val + '\\' + item)
+    if (stat.isDirectory() === true) {
+      arrFiles = arrFiles.concat(load(val + '\\' + item))
+    } else {
+      var reg = /^.*\.mp3$/
+      var reg1 = /^.*\.flac$/
+      if (reg.test(item) || reg1.test(item)) { /* 获取的是所有的mp3和flac文件 */
+        arrFiles.push(val + '\\' + item)
+      }
+    }
+  }
+  return arrFiles
+}
+app.get('/api/private/v1/songs', (req, res) => {
+  var fileList = load('./assets/song')
+  var nameList = []
+  for (let i = 0;  i < fileList.length; i++) {
+    fileList[i] = fileList[i].replaceAll('\\', '/')
+    var split = fileList[i].split('/')
+    fileList[i] = 'http://localhost:8888/' + fileList[i].replace('./assets/', '')
+    nameList.push(split[split.length - 1].replace('.flac', '').replace('.mp3', ''))
+  }
+  var data = []
+  for (let i = 0; i < fileList.length; i++) {
+    data.push({ url: fileList[i], name: nameList[i] })
+  }
+  var obj = {
+    data,
+    meta: { status: 200, message: '获取音乐列表成功' }
+  }
+  res.send(obj)
+})
 // 定义日志
 // var log4js = require('./modules/logger');
 // log4js.use(app);
